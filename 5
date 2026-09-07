@@ -1,0 +1,104 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, GlobalAveragePooling1D, Dense
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# 1. Load Dataset
+newsgroups = fetch_20newsgroups(
+    subset='all',
+    remove=('headers', 'footers', 'quotes')
+)
+
+documents = newsgroups.data
+labels = newsgroups.target
+class_names = newsgroups.target_names
+
+print("Total number of documents:", len(documents))
+print("Number of classes:", len(class_names))
+
+print("\nClasses:")
+for i, name in enumerate(class_names):
+    print(i, name)
+
+print("\nSample Documents:")
+print(documents[0][:1000])
+
+print("\nActual classes:")
+print(class_names[labels[0]])
+
+# 2. Train Test Split
+x_train, x_test, y_train, y_test = train_test_split(
+    documents,
+    labels,
+    test_size=0.20,
+    random_state=42,
+    stratify=labels
+)
+
+# 3. Tokenization & Padding
+vocab_size = 10000
+max_len = 200
+
+tokenizer = Tokenizer(num_words=vocab_size, oov_token="<OOV>")
+tokenizer.fit_on_texts(x_train)
+
+x_train_seq = tokenizer.texts_to_sequences(x_train)
+x_test_seq = tokenizer.texts_to_sequences(x_test)
+
+x_train_pad = pad_sequences(x_train_seq, maxlen=max_len, padding='post', truncating='post')
+x_test_pad = pad_sequences(x_test_seq, maxlen=max_len, padding='post', truncating='post')
+
+# 4. Build Deep Learning Model
+model = Sequential([
+    Embedding(vocab_size, 128, input_length=max_len),
+    GlobalAveragePooling1D(),
+    Dense(64, activation='relu'),
+    Dense(len(class_names), activation='softmax')
+])
+
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.summary()
+
+# 5. Training
+history = model.fit(
+    x_train_pad, y_train,
+    epochs=10,
+    batch_size=32,
+    validation_data=(x_test_pad, y_test),
+    verbose=1
+)
+
+# 6. Evaluation
+test_loss, test_accuracy = model.evaluate(x_test_pad, y_test)
+print("\nTest loss:", test_loss)
+print("Test Accuracy:", test_accuracy*100, "%")
+
+# 7. Prediction
+predictions = model.predict(x_test_pad)
+predicted_classes = np.argmax(predictions, axis=1)
+
+for i in range(5):
+    print("\n----------")
+    print("Document:", x_test[i][:300])
+    print("\nActual class:", class_names[y_test[i]])
+    print("Predicted class:", class_names[predicted_classes[i]])
+
+# 8. Classification Report & Graph
+print("\nClassification Report:")
+print(classification_report(y_test, predicted_classes, target_names=class_names))
+
+plt.figure(figsize=(8,5))
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
