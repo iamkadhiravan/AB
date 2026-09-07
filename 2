@@ -1,0 +1,69 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# 1. Load dataset (Iris.csv)
+df = pd.read_csv('Iris.csv') # your file
+# df = df.drop('Id', axis=1)
+
+# 2. Features and target
+x = df.drop('species', axis=1).values
+y = df['species'].values
+
+# 3. Encode target labels
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(y)
+y_categorical = to_categorical(y_encoded)
+
+# 4. Train-test split
+x_train, x_test, y_train, y_test = train_test_split(
+    x, y_categorical,
+    test_size=0.2,
+    random_state=42
+)
+
+# 5. Scale Features
+scaler = StandardScaler()
+x_train = scaler.fit_transform(x_train)
+x_test = scaler.transform(x_test)
+
+# 6. Define Model
+model = Sequential([
+    Dense(16, activation='relu', input_shape=(x_train.shape[1],)),
+    Dense(12, activation='relu'),
+    Dense(3, activation='softmax') # 3 classes: setosa, versicolor, virginica
+])
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model.summary()
+
+# 7. Training
+history = model.fit(x_train, y_train, epochs=50, batch_size=8, validation_data=(x_test, y_test), verbose=1)
+
+# 8. Evaluation & Sample Prediction
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f"Test Accuracy: {accuracy*100:.2f}%")
+
+y_pred = model.predict(x_test)
+y_pred_classes = np.argmax(y_pred, axis=1)
+y_true_classes = np.argmax(y_test, axis=1)
+
+correct_count = 0
+n_samples = 5
+for i in range(n_samples):
+    pred_label = encoder.inverse_transform([y_pred_classes[i]])[0]
+    actual_label = encoder.inverse_transform([y_true_classes[i]])[0]
+
+    if y_pred_classes[i] == y_true_classes[i]:
+        result = "Right"
+        correct_count += 1
+    else:
+        result = "Wrong"
+
+    print(f"Sample {i+1}: predicted = {pred_label} Actual = {actual_label} -> {result}")
+
+print(f"\nFinal Accuracy: {correct_count / n_samples * 100:.2f}%")
