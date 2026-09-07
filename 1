@@ -1,0 +1,82 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from collections import Counter
+import re
+import random
+
+# 1. Prepare corpus
+corpus = """ Here is a medium-sized of
+ normal English text!
+ The morning began with clear skies and a
+ cool breeze. People slowly started their
+ daily routines as shops opened a """
+
+# 2. Prepare the text
+def preprocess(text):
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text) # remove punctuation
+    return text.split()
+
+words = preprocess(corpus)
+
+# 3. Build Vocabulary
+window_size = 2
+
+word_counts = Counter(words)
+vocab = list(word_counts.keys())
+word_to_ix = {word: i for i, word in enumerate(vocab)}
+ix_to_word = {i: word for word, i in word_to_ix.items()}
+vocab_size = len(vocab)
+
+# 4. Create skip-gram pairs (center -> context)
+x = []
+y = []
+for i in range(len(words)):
+    center = words[i]
+    for j in range(max(0, i-window_size), min(len(words), i+window_size+1)):
+        if i!= j:
+            context = words[j]
+            x.append(word_to_ix[center])
+            y.append(word_to_ix[context])
+
+x = torch.tensor(x, dtype=torch.long)
+y = torch.tensor(y, dtype=torch.long)
+
+# 5. Define the word2vec model
+class Word2Vec(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(Word2Vec, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.output = nn.Linear(embed_size, vocab_size)
+
+    def forward(self, input):
+        embed = self.embedding(input)
+        out = self.output(embed)
+        return out
+
+# 6. Train the model
+embed_size = 50
+model = Word2Vec(vocab_size, embed_size)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+epochs = 100
+for epoch in range(epochs):
+    optimizer.zero_grad()
+    output = model(x)
+    loss = criterion(output, y)
+    loss.backward()
+    optimizer.step()
+
+    if (epoch+1) % 10 == 0:
+        print(f'Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}')
+
+# 7. Get embedding
+with torch.no_grad():
+    word = "skies"
+    if word in word_to_ix:
+        idx = torch.tensor([word_to_ix[word]])
+        embedding = model.embedding(idx)
+        print(f"\nEmbedding for '{word}':")
+        print(embedding)
