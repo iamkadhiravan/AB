@@ -1,0 +1,20 @@
+# Experiment 6: A/B Testing
+
+import numpy as np
+from statsmodels.stats.proportion import proportions_ztest
+
+# Given data
+successes = np.array([120, 150])  # Sales in A and B
+n = np.array([1000, 1200])         # Users in A and B
+alpha = 0.05
+
+# Perform z-test for proportions
+z_stat, p_value = proportions_ztest(successes, n)
+
+print(f"z-statistic: {z_stat:.3f}")
+print(f"p-value: {p_value:.5f}")
+
+if p_value < alpha:
+    print("Reject the null hypothesis: There is a significant difference in conversion rates between A and B")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in conversion rates between A and B.")
