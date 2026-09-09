@@ -1,0 +1,49 @@
+# Exp 2: Categorical data analysis - Customer Satisfaction
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# Upload dataset
+uploaded = files.upload() # upload 'customer_satisfaction.csv'
+
+# Load data
+df = pd.read_csv('customer_satisfaction.csv')  # your file was named 'customer_satisfaction dataset.zip' - rename to .csv if needed
+
+# Basic EDA
+print(df.head())
+print(df.shape)
+print(df.describe())
+print(df.info())
+print("Null values:\n", df.isnull().sum())
+print(df.columns.tolist())
+
+# Cross-tabulation: Satisfaction level vs Repeat Purchase
+cns_cross_table = pd.crosstab(df['satisfaction_level'], df['Repeat_purchase'])
+print("Cross Table:")
+print(cns_cross_table)
+
+# Visualization 1 - Grouped Bar Plot
+cns_cross_table.plot(kind='bar', figsize=(8,5))
+plt.title("Satisfaction Level vs Repeat Purchase")
+plt.xlabel("Satisfaction Level")
+plt.ylabel("Count")
+plt.xticks(rotation=0)
+plt.legend(title="Repeat Purchase")
+plt.show()
+
+# Visualization 2 - Countplot
+sns.countplot(data=df, x='satisfaction_level', hue='Repeat_purchase')
+plt.title("Satisfaction Level vs Repeat Purchase (Countplot)")
+plt.xlabel("Satisfaction Level")
+plt.ylabel("Count")
+plt.show()
+
+# Visualization 3 - Stacked Bar (Percentage)
+cns_cross_table_percent = pd.crosstab(df['satisfaction_level'], df['Repeat_purchase'], normalize='index') * 100
+print(cns_cross_table_percent)
+cns_cross_table_percent.plot(kind='bar', stacked=True, figsize=(8,5))
+plt.title("Percentage of Repeat Purchase by Satisfaction Level")
+plt.ylabel("Percentage (%)")
+plt.show()
