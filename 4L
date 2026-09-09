@@ -1,0 +1,35 @@
+# Experiment 4: Distribution of Sample Means
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+# Simulate population salary (exponential distribution, scale=50000, size=10000)
+population_salaries = np.random.exponential(scale=50000, size=10000)
+
+print(f"Population Mean: {np.mean(population_salaries):.2f}")
+print(f"Population Std: {np.std(population_salaries):.2f}")
+
+# Parameters
+num_samples = 10
+sample_size = 50
+
+sample_means = []
+
+# Take 10 random samples of 50 each
+for i in range(num_samples):
+    sample = np.random.choice(population_salaries, size=sample_size, replace=False)
+    mean_val = np.mean(sample)
+    sample_means.append(mean_val)
+    print(f"Sample {i+1} Mean: {mean_val:.2f}")
+
+# Plot distribution of sample means
+plt.hist(sample_means, bins=5, edgecolor='black')
+plt.title("Distribution of Sample Means (n=50, 10 samples)")
+plt.xlabel("Sample Mean Salary")
+plt.ylabel("Frequency")
+plt.show()
+
+print("Sample Means List:", sample_means)
+print("Mean of Sample Means:", np.mean(sample_means))
