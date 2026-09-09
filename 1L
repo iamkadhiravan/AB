@@ -1,0 +1,48 @@
+# Exp 1: To find the outliers using IQR
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# Upload dataset
+uploaded = files.upload() # upload california_housing.csv
+
+# Load data
+df = pd.read_csv('california_housing.csv')
+
+# Basic EDA
+print(df.head())
+print(df.describe())
+print(df.info())
+print("Null values:\n", df.isnull().sum())
+print(df.columns.tolist())
+
+# Select target column
+price = df["median_house_value"]
+
+# Remove nulls
+df = df.dropna()
+print("Nulls in price after dropna:", df["median_house_value"].isnull().sum())
+
+# Boxplot to visualize outliers
+sns.boxplot(y=price)
+plt.title("Boxplot of House Price")
+plt.ylabel("Median House Value")
+plt.show()
+
+# IQR Calculation
+Q1 = price.quantile(0.25)
+Q3 = price.quantile(0.75)
+IQR = Q3 - Q1
+
+lower_limit = Q1 - 1.5 * IQR
+upper_limit = Q3 + 1.5 * IQR
+
+print(f"Q1: {Q1}, Q3: {Q3}, IQR: {IQR}")
+print(f"Lower Limit: {lower_limit}, Upper Limit: {upper_limit}")
+
+# Detect Outliers
+outliers = price[(price < lower_limit) | (price > upper_limit)]
+print("Number of outliers:", len(outliers))
+print(outliers.head())
