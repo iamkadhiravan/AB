@@ -1,0 +1,37 @@
+import pandas as pd
+import statsmodels.formula.api as smf
+
+# Load dataset - your file is named "8_salary Data.csv"
+# If file not found, create sample data (uncomment below if needed)
+df = pd.read_csv("8_salary Data.csv")
+
+print("First 5 rows of the Dataset:")
+print(df.head())
+
+print("\nColumn Names:")
+print(df.columns)
+
+# Salary = Dependent variable
+# Years of Experience = Numerical Independent variable
+# Education level = Categorical Independent variable
+
+# Fit multiple linear regression with categorical variable
+# C() tells statsmodels that Education level is categorical
+model = smf.ols("salary ~ Q('Years of Experience') + C(Q('Education level'))", data=df).fit()
+
+print("\nRegression Model Summary:")
+print(model.summary())
+
+# Predict for new data
+new_data = pd.DataFrame({
+    "Years of Experience": [5, 5, 5],
+    "Education level": ["Bachelors", "Masters", "PhD"]
+})
+
+prediction = model.predict(new_data)
+
+results = new_data.copy()
+results["predicted salary"] = prediction
+
+print("\nPredicted Salaries:")
+print(results)
