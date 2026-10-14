@@ -1,0 +1,22 @@
+from scipy import stats
+import math
+
+old_mean = 200
+sample_mean = 190
+sample_std = 15
+n = 40
+alpha = 0.05
+
+t_stats = (sample_mean - old_mean) / (sample_std / math.sqrt(n))
+df = n - 1
+
+# Left-tailed test (new < old), so p-value = cdf(t_stats)
+p_value = stats.t.cdf(t_stats, df=df)
+
+print(f"T-statistics: {t_stats:.3f}")
+print(f"P-value: {p_value:.5f}")
+
+if p_value < alpha:
+    print("Reject the null hypothesis: The new recipe has significantly fewer calories.")
+else:
+    print("Fail to reject the null hypothesis: No significant difference in calories.")
