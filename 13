@@ -1,0 +1,27 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data
+data = [10, 20, 30, 40, 50]
+
+# Sample size
+n = len(data)
+print("Sample size:", n)
+
+# Bootstrap samples
+means = []
+
+for i in range(1000):
+    sample = np.random.choice(data, size=n, replace=True)
+    means.append(np.mean(sample))
+
+# Mean
+print("Original mean:", np.mean(data))
+print("Bootstrap mean:", np.mean(means))
+
+# Graph
+plt.hist(means, bins=20, edgecolor="black")
+plt.xlabel("Bootstrap Mean")
+plt.ylabel("Frequency")
+plt.title("Bootstrap Sampling Distribution")
+plt.show()
