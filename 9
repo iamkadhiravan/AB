@@ -1,0 +1,34 @@
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+# Data - from your notebook
+data = {
+    'price': [200000, 250000, 300000, 350000, 400000, 420000, 450000, 500000, 550000],
+    'sqft': [1500, 1600, 1800, 1900, 2000, 2200, 2400, 2600, 2100]
+}
+
+df = pd.DataFrame(data)
+
+# Create spline term - knot at 2000 sq ft
+# This creates hinge function: max(0, sqft - 2000)
+# It is 0 before 2000, and (sqft-2000) after 2000
+df['sqft_knot'] = np.maximum(0, df['sqft'] - 2000)
+
+print(df.head())
+
+X = sm.add_constant(df[['sqft', 'sqft_knot']])
+y = df['price']
+
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+# Plotting
+plt.scatter(df['sqft'], df['price'], color='blue', label='Data')
+plt.plot(df['sqft'], model.predict(X), color='red', label='Spline Fit')
+plt.xlabel('Square footage')
+plt.ylabel('Price')
+plt.title('Spline Regression of price on square footage')
+plt.legend()
+plt.show()
